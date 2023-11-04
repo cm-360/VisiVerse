@@ -118,6 +118,14 @@ async def db_close():
     await app.db.close()
 
 
+# ********** Template Utilities **********
+
+@app.context_processor
+def utility_processor():
+    return dict(
+    )
+
+
 # ********** Exception Handling **********
 
 @app.errorhandler(Exception)
