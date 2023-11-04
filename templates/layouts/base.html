@@ -1,0 +1,28 @@
+{% set fontawesome_version='6.4.2' %}
+
+{% set site_title='Test Site' %}
+
+{% set github_url='https://github.com/cm-360/MovableQ' %}
+
+<!DOCTYPE html>
+<html lang="en" class="h-100" data-bs-theme="dark">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="description" content="">
+	<title>{% block title %}{% endblock %} - {{ site_title }}</title>
+	<link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}">
+	<!-- Bootstrap -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+	<!-- FontAwesome -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/{{ fontawesome_version }}/css/all.min.css">
+</head>
+<body class="bg-dark-subtle d-flex flex-column h-100">
+	{% include "features/header.html" %}
+	<main class="flex-shrink-0 my-3 container">
+		{% block content %}{% endblock %}
+	</main>
+	{% include "features/footer.html" %}
+</body>
+</html>

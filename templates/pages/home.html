@@ -1,0 +1,37 @@
+{% extends "layouts/sidebar_left.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block page_content %}
+<h1 class="h4 p-1 pt-0 mb-1 border-bottom border-primary border-3">Grid Title</h1>
+<div class="p-1 g-2 row row-cols-1 row-cols-md-3 row-cols-lg-4">
+	{% for media in all_media %}
+		{% set media_url=url_for('page_view', media_id=media.id) %}
+		<div class="col">
+			<div class="card bg-dark">
+				<a href="{{ media_url }}" class="ratio ratio-16x9">
+					<img src="https://my.alfred.edu/zoom/_images/foster-lake.jpg" class="card-img-top" alt="Thumbnail for {{ media.title }}">
+					<div class="card-img-overlay p-1 d-flex align-items-end justify-content-end">
+						<div class="card-text opacity-75">
+							<span class="badge text-bg-dark">wow</span>
+						</div>
+					</div>
+				</a>
+				<div class="card-body px-2 py-1">
+					<a href="{{ media_url }}"><b>{{ media.title }}</b></a>
+				</div>
+			</div>
+		</div>
+	{% endfor %}
+</div>
+{% endblock %}
+
+{% block sidebar_content %}
+<div class="card">
+	<div class="list-group list-group-flush">
+		<a href="#" class="list-group-item list-group-item-action">Destination 1</a>
+		<a href="#" class="list-group-item list-group-item-action">Destination 2</a>
+		<a href="#" class="list-group-item list-group-item-action">Destination 3</a>
+	</div>
+</div>
+{% endblock %}
