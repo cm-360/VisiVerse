@@ -10,6 +10,9 @@ from werkzeug.exceptions import HTTPException
 from sqlalchemy import insert
 from sqlalchemy import select
 
+# Custom config class
+from config import load_config
+
 # Custom database and types
 from database import Database
 from database import Media
@@ -20,6 +23,9 @@ from database import Tag
 
 app = Quart(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+config_path = "config.cfg"
+config = load_config(config_path)
 
 
 # ********** Frontend Page Routes **********
@@ -33,11 +39,11 @@ async def page_home():
 async def page_view(media_id: str):
     try:
         media_uuid = UUID(media_id)
-        media = await app.db.select_object(Media, media_uuid)
-        if media is None:
+        result = await app.db.select_object(Media, media_uuid)
+        if result is None:
             return await page_error("Not found", 404)
         # TODO render page
-        return await render_template("pages/view.html", media=media)
+        return await render_template("pages/view.html", media=result)
     except ValueError as e:
         return await page_exception(e)
 
@@ -87,6 +93,17 @@ async def api_organization_info(id: str):
     except ValueError as e:
         return api_exception(e)
 
+@app.route("/api/media/get/<string:media_id>")
+async def api_media_get(media_id: str):
+    try:
+        media_uuid = UUID(media_id)
+        result = await app.db.select_object(Media, media_uuid)
+        if result is None:
+            return api_error("Not found", 404)
+        media_path = config["library"]["media_path"]
+        return await send_file(f"{media_path}/{result.filename}", conditional=True)
+    except ValueError as e:
+        return api_exception(e)
 
 # ********** Backend Response Templates **********
 
@@ -106,27 +123,25 @@ def api_exception(e, code=400):
     return api_error(f"{type(e).__name__}: {e}", code)
 
 
-# ********** Database Setup/Cleanup **********
+# ********** Miscellaneous Helpers **********
 
 @app.before_serving
 async def db_begin():
-    app.db = Database("sqlite+aiosqlite:///:memory:")
+    app.db = Database(
+        config["database"]["url"],
+        config["library"]["media_path"]
+    )
     await app.db.begin()
 
 @app.after_serving
 async def db_close():
     await app.db.close()
 
-
-# ********** Template Utilities **********
-
 @app.context_processor
 def utility_processor():
+    # Template utility functions
     return dict(
     )
-
-
-# ********** Exception Handling **********
 
 @app.errorhandler(Exception)
 def handle_exception(e: Exception):
@@ -139,4 +154,5 @@ def handle_exception(e: Exception):
 
 
 if __name__ == "__main__":
+    
     app.run()
