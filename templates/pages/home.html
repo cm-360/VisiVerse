@@ -6,7 +6,7 @@
 <h1 class="h4 p-1 pt-0 mb-1 border-bottom border-primary border-3">Grid Title</h1>
 <div class="p-1 g-2 row row-cols-1 row-cols-md-3 row-cols-lg-4">
 	{% for media in all_media %}
-		{% set media_url=url_for('page_view', media_id=media.id) %}
+		{% set media_url=url_for('page_view', media_id=uuid_to_b64(media.id)) %}
 		<div class="col">
 			<div class="card bg-dark">
 				<a href="{{ media_url }}" class="ratio ratio-16x9">
