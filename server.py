@@ -1,3 +1,4 @@
+import base64
 from uuid import UUID
 
 # Quart
@@ -15,10 +16,14 @@ from config import load_config
 
 # Custom database and types
 from database import Database
+from database import MediaType
 from database import Media
 from database import Person
 from database import Organization
 from database import Tag
+
+# Custom FFmpeg wrapper
+from transcoder import Transcoder
 
 
 app = Quart(__name__)
@@ -38,7 +43,7 @@ async def page_home():
 @app.route("/view/<string:media_id>")
 async def page_view(media_id: str):
     try:
-        media_uuid = UUID(media_id)
+        media_uuid = b64_to_uuid(media_id)
         result = await app.db.select_object(Media, media_uuid)
         if result is None:
             return await page_error("Not found", 404)
@@ -93,8 +98,11 @@ async def api_organization_info(id: str):
     except ValueError as e:
         return api_exception(e)
 
-@app.route("/api/media/get/<string:media_id>")
-async def api_media_get(media_id: str):
+
+# ********** Backend Files Routes **********
+
+@app.route("/files/media/<string:media_id>")
+async def files_media(media_id: str):
     try:
         media_uuid = UUID(media_id)
         result = await app.db.select_object(Media, media_uuid)
@@ -104,6 +112,18 @@ async def api_media_get(media_id: str):
         return await send_file(f"{media_path}/{result.filename}", conditional=True)
     except ValueError as e:
         return api_exception(e)
+
+@app.route("/files/thumbs/<string:media_id>")
+async def files_thumbs(media_id: str):
+    try:
+        media_uuid = UUID(media_id)
+        result = await app.db.select_object(Media, media_uuid)
+        if result is None:
+            return api_error("Not found", 404)
+        return await send_file(app.transcoder.get_thumb_filename(result.id))
+    except ValueError as e:
+        return api_exception(e)
+
 
 # ********** Backend Response Templates **********
 
@@ -123,24 +143,39 @@ def api_exception(e, code=400):
     return api_error(f"{type(e).__name__}: {e}", code)
 
 
+# ********** Library Operations **********
+
+async def import_media(media_filename, **media_args):
+    # create media object
+    new_media = Media(
+        filename=media_filename,
+        **media_args
+    )
+    # generate thumbnail for videos
+    if MediaType.video == new_media.type:
+        pass
+    await app.db.insert_object(new_media)
+
+
 # ********** Miscellaneous Helpers **********
 
 @app.before_serving
-async def db_begin():
-    app.db = Database(
-        config["database"]["url"],
-        config["library"]["media_path"]
-    )
+async def app_prepare():
+    app.db = Database(config)
+    app.transcoder = Transcoder(config)
     await app.db.begin()
+    for i in range(10):
+        await import_media(f"test{i}.mp4", title=f"test{i}", type=MediaType.video)
 
 @app.after_serving
-async def db_close():
+async def app_cleanup():
     await app.db.close()
 
 @app.context_processor
 def utility_processor():
     # Template utility functions
     return dict(
+        uuid_to_b64=uuid_to_b64,
     )
 
 @app.errorhandler(Exception)
@@ -152,7 +187,12 @@ def handle_exception(e: Exception):
     app.logger.exception(e)
     return api_exception(e, 500)
 
+def uuid_to_b64(uuid_value):
+    return base64.urlsafe_b64encode(uuid_value.bytes).decode("utf-8").rstrip("=")
+
+def b64_to_uuid(b64_value):
+    return UUID(bytes=base64.urlsafe_b64decode(b64_value + "=="))
+
 
 if __name__ == "__main__":
-    
     app.run()

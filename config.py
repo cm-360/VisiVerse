@@ -14,13 +14,14 @@ def load_config(filename, autosave=True):
         print(f"Error reading config file '{filename}': {e}, using defaults")
 
     default_values = {
-        "database": {
-            "url": "sqlite+aiosqlite:///:memory:",
-        },
         "library": {
-            "media_path": "./library",
-            "thumbs_path": "./thumbs",
+            "db_url": "sqlite+aiosqlite:///:memory:",
+            "media_path": "./media",
         },
+        "storage": {
+            "path": "./storage",
+            "thumb_suffix": "-thumb.jpg",
+        }
     }
 
     # Set default values if needed

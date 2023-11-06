@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 import uuid
 from dataclasses import dataclass
 from typing import Optional
@@ -7,6 +8,7 @@ from typing import Optional
 from sqlalchemy import Column
 from sqlalchemy import Table
 from sqlalchemy import ForeignKey
+from sqlalchemy import Enum
 from sqlalchemy import Uuid
 # SQL commands
 from sqlalchemy import insert
@@ -24,17 +26,16 @@ from sqlalchemy.orm import relationship
 
 class Database():
 
-    def __init__(self, db_url, library_path):
-        self.library_path = library_path
-        self.engine = create_async_engine(db_url, echo=True)
+    def __init__(self, app_config):
+        self.app_config = app_config
+        # setup db engine and session maker
+        self.db_url = app_config["library"]["db_url"]
+        self.engine = create_async_engine(self.db_url, echo=True)
         self.async_session = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def begin(self) -> None:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-
-        for i in range(10):
-            await self.insert_object(Media(filename=f"test{i}.mp4", title=f"test{i}"))
 
     async def close(self) -> None:
         await self.engine.dispose()
@@ -50,7 +51,7 @@ class Database():
         async with self.async_session() as session:
             result = await session.execute(
                 select(object_class)
-                # .where(object_class.id == object_uuid)
+                .where(object_class.id == object_uuid)
             )
             return result.scalar()
 
@@ -60,11 +61,6 @@ class Database():
                 select(object_class)
             )
             return result.scalars()
-
-    # ********** Media Actions **********
-
-    async def import_media(self):
-        pass
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -80,6 +76,12 @@ assoc_media_tag_table = Table(
 )
 
 
+class MediaType(enum.Enum):
+    video = 1
+    image = 2
+    audio = 3
+
+
 @dataclass
 class Media(Base):
     __tablename__ = "media"
@@ -90,6 +92,7 @@ class Media(Base):
     description: Mapped[Optional[str]]
     duration: Mapped[Optional[int]]
     urls: Mapped[Optional[str]]
+    type: Mapped[enum.Enum] = mapped_column(Enum(MediaType))
 
     tags: Mapped[list[Tag]] = relationship(
         secondary=assoc_media_tag_table, back_populates="media"
