@@ -46,6 +46,7 @@ class Database():
         async with self.async_session() as session:
             async with session.begin():
                 session.add(new_object)
+            session.refresh(new_object)
 
     async def select_object(self, object_class, object_uuid):
         async with self.async_session() as session:

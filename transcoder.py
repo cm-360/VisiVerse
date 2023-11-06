@@ -1,3 +1,5 @@
+import os
+
 import ffmpeg
 
 
@@ -9,12 +11,14 @@ class Transcoder():
     def ensure_segment(media_filename):
         pass
 
-    def create_thumbnail(media):
+    def create_thumbnail(self, media, seek=5):
+        thumb_filename = self.get_thumb_filename(media.id)
+        ensure_parent_dir(thumb_filename)
         (
             ffmpeg
-            .input(media_filename, ss=seek)
-            .filter('scale', 720, -1)
-            .output(media_filename + thumb_suffix, vframes=1)
+            .input(media.filename, ss=seek)
+            .filter("scale", 720, -1)
+            .output(thumb_filename, vframes=1)
             .overwrite_output()
             .run()
         )
@@ -23,3 +27,9 @@ class Transcoder():
         storage_path = self.app_config["storage"]["path"]
         thumb_suffix = self.app_config["storage"]["thumb_suffix"]
         return f"{storage_path}/thumbs/{media_id}{thumb_suffix}"
+
+
+def ensure_parent_dir(filename):
+    parent_dir = os.path.dirname(filename)
+    if not os.path.exists(parent_dir):
+        os.makedirs(parent_dir)

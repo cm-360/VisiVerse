@@ -5,6 +5,7 @@ from uuid import UUID
 from quart import Quart
 from quart import jsonify
 from quart import render_template
+from quart.utils import run_sync
 from werkzeug.exceptions import HTTPException
 
 # SQL commands
@@ -151,10 +152,11 @@ async def import_media(media_filename, **media_args):
         filename=media_filename,
         **media_args
     )
-    # generate thumbnail for videos
-    if MediaType.video == new_media.type:
-        pass
+    # insert media into db
     await app.db.insert_object(new_media)
+    # generate thumbnails for videos
+    if MediaType.video == new_media.type:
+        await run_sync(app.transcoder.create_thumbnail)(new_media)
 
 
 # ********** Miscellaneous Helpers **********
@@ -164,8 +166,11 @@ async def app_prepare():
     app.db = Database(config)
     app.transcoder = Transcoder(config)
     await app.db.begin()
-    for i in range(10):
-        await import_media(f"test{i}.mp4", title=f"test{i}", type=MediaType.video)
+
+    import os
+    import_dir = "import"
+    for filename in os.listdir(import_dir):
+        await import_media(f"{import_dir}/{filename}", title=filename, type=MediaType.video)
 
 @app.after_serving
 async def app_cleanup():
