@@ -7,6 +7,7 @@ name = "pypi"
 quart = "*"
 sqlalchemy = {extras = ["asyncio"], version = "*"}
 aiosqlite = "*"
+ffmpeg-python = "*"
 
 [dev-packages]
 
