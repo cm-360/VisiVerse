@@ -5,8 +5,8 @@
 {% block page_content %}
 <div class="ratio ratio-16x9 object-fit-contain bg-black">
 	<!-- https://codepen.io/heff/pen/DyoMvJ -->
-	<video poster="https://my.alfred.edu/zoom/_images/foster-lake.jpg" controls>
-		<source src="movie.mp4" type="video/mp4">
+	<video poster="{{ url_for('files_thumbs', media_id=media.id) }}" controls>
+		<source src="{{ url_for('files_media', media_id=media.id) }}" type="video/mp4">
 	Your browser does not support the video tag.
 	</video> 
 </div>

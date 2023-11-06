@@ -33,3 +33,7 @@ def ensure_parent_dir(filename):
     parent_dir = os.path.dirname(filename)
     if not os.path.exists(parent_dir):
         os.makedirs(parent_dir)
+
+# Gets video duration in seconds
+def get_video_duration(filename):
+    return int(round(float(ffmpeg.probe(filename)["format"]["duration"])))

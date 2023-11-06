@@ -10,10 +10,12 @@
 		<div class="col">
 			<div class="card bg-dark">
 				<a href="{{ media_url }}" class="ratio ratio-16x9">
-					<img src="https://my.alfred.edu/zoom/_images/foster-lake.jpg" class="card-img-top" alt="Thumbnail for {{ media.title }}">
+					<img src="{{ url_for('files_thumbs', media_id=media.id) }}" class="card-img-top object-fit-contain bg-black" alt="Thumbnail for {{ media.title }}">
 					<div class="card-img-overlay p-1 d-flex align-items-end justify-content-end">
 						<div class="card-text opacity-75">
-							<span class="badge text-bg-dark">wow</span>
+							{% if media.duration != None %}
+								<span class="badge text-bg-dark">{{ format_duration(media.duration) }}</span>
+							{% endif %}
 						</div>
 					</div>
 				</a>

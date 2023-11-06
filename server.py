@@ -5,6 +5,7 @@ from uuid import UUID
 from quart import Quart
 from quart import jsonify
 from quart import render_template
+from quart import send_file
 from quart.utils import run_sync
 from werkzeug.exceptions import HTTPException
 
@@ -25,6 +26,7 @@ from database import Tag
 
 # Custom FFmpeg wrapper
 from transcoder import Transcoder
+from transcoder import get_video_duration
 
 
 app = Quart(__name__)
@@ -109,8 +111,7 @@ async def files_media(media_id: str):
         result = await app.db.select_object(Media, media_uuid)
         if result is None:
             return api_error("Not found", 404)
-        media_path = config["library"]["media_path"]
-        return await send_file(f"{media_path}/{result.filename}", conditional=True)
+        return await send_file(result.filename, conditional=True)
     except ValueError as e:
         return api_exception(e)
 
@@ -152,6 +153,9 @@ async def import_media(media_filename, **media_args):
         filename=media_filename,
         **media_args
     )
+    # set duration for videos
+    if MediaType.video == new_media.type:
+        new_media.duration = await run_sync(get_video_duration)(new_media.filename)
     # insert media into db
     await app.db.insert_object(new_media)
     # generate thumbnails for videos
@@ -168,7 +172,7 @@ async def app_prepare():
     await app.db.begin()
 
     import os
-    import_dir = "import"
+    import_dir = "media"
     for filename in os.listdir(import_dir):
         await import_media(f"{import_dir}/{filename}", title=filename, type=MediaType.video)
 
@@ -181,6 +185,7 @@ def utility_processor():
     # Template utility functions
     return dict(
         uuid_to_b64=uuid_to_b64,
+        format_duration=format_duration,
     )
 
 @app.errorhandler(Exception)
@@ -197,6 +202,14 @@ def uuid_to_b64(uuid_value):
 
 def b64_to_uuid(b64_value):
     return UUID(bytes=base64.urlsafe_b64decode(b64_value + "=="))
+
+def format_duration(seconds):
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours == 0:
+        return f"{minutes}:{seconds:02}"
+    else:
+        return f"{hours}:{minutes:02}:{seconds:02}"
 
 
 if __name__ == "__main__":
