@@ -1,11 +1,12 @@
+from __future__ import annotations
+
 import uuid
 from dataclasses import dataclass
 from typing import Optional
 
-# Column types
-from sqlalchemy import Integer
+from sqlalchemy import Column
+from sqlalchemy import Table
 from sqlalchemy import ForeignKey
-from sqlalchemy import Text
 from sqlalchemy import Uuid
 # SQL commands
 from sqlalchemy import insert
@@ -18,6 +19,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import relationship
 
 
 class Database():
@@ -69,6 +71,15 @@ class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 
+# Media <---> Tag associations
+assoc_media_tag_table = Table(
+    "assoc_media_tag",
+    Base.metadata,
+    Column("media_id", ForeignKey("media.id"), primary_key=True),
+    Column("tag_name", ForeignKey("tags.name"), primary_key=True),
+)
+
+
 @dataclass
 class Media(Base):
     __tablename__ = "media"
@@ -79,6 +90,10 @@ class Media(Base):
     description: Mapped[Optional[str]]
     duration: Mapped[Optional[int]]
     urls: Mapped[Optional[str]]
+
+    tags: Mapped[list[Tag]] = relationship(
+        secondary=assoc_media_tag_table, back_populates="media"
+    )
 
     def __repr__(self) -> str:
         return f"{self.title} [{self.filename}]"
@@ -110,8 +125,11 @@ class Organization(Base):
 class Tag(Base):
     __tablename__ = "tags"
 
-    id: Mapped[str] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(primary_key=True)
+
+    media: Mapped[list[Media]] = relationship(
+        secondary=assoc_media_tag_table, back_populates="tags"
+    )
 
     def __repr__(self) -> str:
         return f"{self.name}"
