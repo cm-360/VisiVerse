@@ -1,0 +1,29 @@
+{% for media_item in media_items %}
+    {% set media_url=url_for('page_view', media_id=uuid_to_b64(media_item.id)) %}
+    <div class="tile">
+        <div class="stage ratio ratio-16x9">
+            <div class="ratio-inner">
+                <a href="{{ media_url }}">
+                    <img class="stage-content" src="{{ url_for('files_thumbs', media_id=media_item.id) }}" alt="Thumbnail for {{ media_item.title }}">
+                </a>
+                <div class="bubble-overlay">
+                    {% if media_item.duration is not none %}
+                        <span>{{ format_duration(media_item.duration) }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <h4 class="tile-title field-sm">
+            <a href="{{ media_url }}">{{ media_item.title }}</a>
+        </h4>
+        <div class="tile-details">
+            <div class="field-sm">
+                <a href="#">Person McExampleson</a>
+            </div>
+            <div class="field-sm">
+                <span><i class="fa-solid fa-eye"></i> 100</span>
+                <span><i class="fa-solid fa-thumbs-up"></i> 100%</span>
+            </div>
+        </div>
+    </div>
+{% endfor %}

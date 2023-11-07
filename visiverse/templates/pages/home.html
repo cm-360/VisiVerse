@@ -5,35 +5,8 @@
 {% block page_content %}
 <h2 class="section-header section-title">Grid Title</h2>
 <div class="section-content tile-grid">
-	{% for media in all_media %}
-		{% set media_url=url_for('page_view', media_id=uuid_to_b64(media.id)) %}
-		<div class="tile">
-			<div class="stage ratio ratio-16x9">
-				<div class="ratio-inner">
-					<a href="{{ media_url }}">
-						<img class="stage-content" src="{{ url_for('files_thumbs', media_id=media.id) }}" alt="Thumbnail for {{ media.title }}">
-					</a>
-					<div class="bubble-overlay">
-						{% if media.duration != None %}
-							<span>{{ format_duration(media.duration) }}</span>
-						{% endif %}
-					</div>
-				</div>
-			</div>
-			<h4 class="tile-title field-sm">
-				<a href="{{ media_url }}">{{ media.title }}</a>
-			</h4>
-			<div class="tile-details">
-				<div class="field-sm">
-					<a href="#">Person McExampleson</a>
-				</div>
-				<div class="field-sm">
-					<span><i class="fa-solid fa-eye"></i> 100</span>
-					<span><i class="fa-solid fa-thumbs-up"></i> 100%</span>
-				</div>
-			</div>
-		</div>
-	{% endfor %}
+	{% set media_items=all_media %}
+	{% include "features/media_tiles.html" %}
 </div>
 {% endblock %}
 
