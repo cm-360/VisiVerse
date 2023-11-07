@@ -4,18 +4,16 @@
 
 {% block page_content %}
 <div class="section-content">
-	<div class="stage">
+	<div class="stage ratio ratio-16x9">
 		<!-- https://codepen.io/heff/pen/DyoMvJ -->
-		<video poster="{{ url_for('files_thumbs', media_id=media.id) }}" controls>
+		<video class="stage-content ratio-inner" poster="{{ url_for('files_thumbs', media_id=media.id) }}" controls>
 			<source src="{{ url_for('files_media', media_id=media.id) }}" type="video/mp4">
 		Your browser does not support the video tag.
 		</video> 
 	</div>
 </div>
 <div class="section-header">
-	<div class="section-title">
-		{{ media.title }}
-	</div>
+	<h1>{{ media.title }}</h1>
 </div>
 {% endblock %}
 

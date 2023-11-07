@@ -59,11 +59,8 @@ h1, h2, h3, h4, h5, h6 {
 .section-header {
 	margin: 10px 5px;
 	padding: 0 5px;
+	padding-bottom: 2px;
 	border-bottom: solid 2px var(--color-accent);
-}
-.section-title {
-	font-size: 1.4em;
-	font-weight: bold;
 }
 .section-content {
 	margin: 10px;
@@ -74,6 +71,10 @@ h1, h2, h3, h4, h5, h6 {
 	padding: 5px;
 	border-radius: 10px;
 	background-color: var(--color-secondary);
+}
+
+.shadow {
+	box-shadow: 0 6px 12px 0 rgba(0, 0, 0, 0.5);
 }
 
 .link-list a {
@@ -89,39 +90,41 @@ h1, h2, h3, h4, h5, h6 {
 	margin-right: 5px;
 }
 
-/* Tiles/grids */
-
-.tile-grid {
-	display: grid;
-	gap: 8px;
-}
-.tile-title {
-	display: block;
-	font-size: 14px;
-}
-.tile-details {
-	font-size: 12px;
-	color: var(--color-text-minor);
-}
-.tile-thumb-wrapper {
+.ratio {
 	display: block;
 	position: relative;
 	width: 100%;
-	padding-top: 56.25%;
 	overflow: hidden;
-	background-color: black;
 }
-.tile-thumb {
+.ratio-16x9 {
+	padding-top: 56.25%;
+}
+.ratio-inner {
 	display: block;
 	position: absolute;
 	top: 0;
 	width: 100%;
 	height: 100%;	
 }
-.tile-thumb img {
+
+.stage {
+	background-color: black;
+}
+.stage-content {
 	width: 100%;
 	height: 100%;
 	object-fit: contain;
+}
+
+/* Tiles/grids */
+
+.tile-grid {
+	display: grid;
+	gap: 8px;
+}
+.tile-details {
+	font-size: 0.8em;
+	color: var(--color-text-minor);
 }
 
 .bubble-overlay {
@@ -176,8 +179,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .nav-title {
 	display: none;
-	font-size: 1.5em;
-	font-weight: bold;
 }
 .nav-content {
 	display: flex;

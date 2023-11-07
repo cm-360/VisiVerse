@@ -3,26 +3,26 @@
 {% block title %}Home{% endblock %}
 
 {% block page_content %}
-<div class="section-header section-title">Grid Title</div>
+<h2 class="section-header section-title">Grid Title</h2>
 <div class="section-content tile-grid">
 	{% for media in all_media %}
 		{% set media_url=url_for('page_view', media_id=uuid_to_b64(media.id)) %}
 		<div class="tile">
-			<div class="tile-thumb-wrapper">
-				<span class="tile-thumb">
+			<div class="stage ratio ratio-16x9">
+				<div class="ratio-inner">
 					<a href="{{ media_url }}">
-						<img src="{{ url_for('files_thumbs', media_id=media.id) }}" alt="Thumbnail for {{ media.title }}">
+						<img class="stage-content" src="{{ url_for('files_thumbs', media_id=media.id) }}" alt="Thumbnail for {{ media.title }}">
 					</a>
 					<div class="bubble-overlay">
 						{% if media.duration != None %}
 							<span>{{ format_duration(media.duration) }}</span>
 						{% endif %}
 					</div>
-				</span>
+				</div>
 			</div>
-			<div class="tile-title">
+			<h4 class="tile-title">
 				<a href="{{ media_url }}">{{ media.title }}</a>
-			</div>
+			</h4>
 			<div class="tile-details">
 				<div>
 					<a href="{{ media_url }}">{{ media.title }}</a>
