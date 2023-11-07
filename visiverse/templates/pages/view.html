@@ -3,12 +3,19 @@
 {% block title %}View{% endblock %}
 
 {% block page_content %}
-<div class="ratio ratio-16x9 object-fit-contain bg-black">
-	<!-- https://codepen.io/heff/pen/DyoMvJ -->
-	<video poster="{{ url_for('files_thumbs', media_id=media.id) }}" controls>
-		<source src="{{ url_for('files_media', media_id=media.id) }}" type="video/mp4">
-	Your browser does not support the video tag.
-	</video> 
+<div class="section-content">
+	<div class="stage">
+		<!-- https://codepen.io/heff/pen/DyoMvJ -->
+		<video poster="{{ url_for('files_thumbs', media_id=media.id) }}" controls>
+			<source src="{{ url_for('files_media', media_id=media.id) }}" type="video/mp4">
+		Your browser does not support the video tag.
+		</video> 
+	</div>
+</div>
+<div class="section-header">
+	<div class="section-title">
+		{{ media.title }}
+	</div>
 </div>
 {% endblock %}
 

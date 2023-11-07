@@ -3,7 +3,7 @@
 {% block title %}Home{% endblock %}
 
 {% block page_content %}
-<div class="section-header">Grid Title</div>
+<div class="section-header section-title">Grid Title</div>
 <div class="section-content tile-grid">
 	{% for media in all_media %}
 		{% set media_url=url_for('page_view', media_id=uuid_to_b64(media.id)) %}
@@ -38,8 +38,8 @@
 
 {% block sidebar_content %}
 <div class="section-content bubble-block link-list shadow">
-	<a href="#" class="">Destination 1</a>
-	<a href="#" class="">Destination 2</a>
-	<a href="#" class="">Destination 3</a>
+	<a href="#">Destination 1</a>
+	<a href="#">Destination 2</a>
+	<a href="#">Destination 3</a>
 </div>
 {% endblock %}
