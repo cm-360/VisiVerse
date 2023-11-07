@@ -5,7 +5,7 @@
 {% set github_url='https://github.com/cm-360/MovableQ' %}
 
 <!DOCTYPE html>
-<html lang="en" class="h-100" data-bs-theme="dark">
+<html lang="en" class="h-100">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -18,11 +18,11 @@
 	<!-- FontAwesome -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/{{ fontawesome_version }}/css/all.min.css">
 	<!-- Custom Styles -->
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
 </head>
-<body class="bg-dark-subtle d-flex flex-column h-100">
+<body>
 	{% include "features/header.html" %}
-	<main class="flex-shrink-0 my-3 container">
+	<main>
 		{% block content %}{% endblock %}
 	</main>
 	{% include "features/footer.html" %}

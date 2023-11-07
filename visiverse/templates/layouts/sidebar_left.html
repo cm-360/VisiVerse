@@ -1,12 +1,10 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
-<div class="g-3 row">
-	<aside class="col-md-3 col-xxl-2">
-		{% block sidebar_content %}{% endblock %}
-	</aside>
-	<section class="col-md-9 col-xxl-10">
-		{% block page_content %}{% endblock %}
-	</section>
-</div>
+<aside class="sidebar">
+	{% block sidebar_content %}{% endblock %}
+</aside>
+<section class="page-content has-sidebar">
+	{% block page_content %}{% endblock %}
+</section>
 {% endblock %}

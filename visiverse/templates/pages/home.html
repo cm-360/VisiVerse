@@ -3,37 +3,45 @@
 {% block title %}Home{% endblock %}
 
 {% block page_content %}
-<h1 class="h4 p-1 pt-0 mb-1 border-bottom border-primary border-3">Grid Title</h1>
-<div class="p-1 g-2 row row-cols-1 row-cols-md-3 row-cols-lg-4">
-	{% for media in all_media %}
-		{% set media_url=url_for('page_view', media_id=uuid_to_b64(media.id)) %}
-		<div class="col">
-			<div class="card bg-dark">
-				<a href="{{ media_url }}" class="ratio ratio-16x9">
-					<img src="{{ url_for('files_thumbs', media_id=media.id) }}" class="card-img-top object-fit-contain bg-black" alt="Thumbnail for {{ media.title }}">
-					<div class="card-img-overlay p-1 d-flex align-items-end justify-content-end">
-						<div class="card-text opacity-75">
+<div>
+	<div class="section-header">Grid Title</div>
+	<div class="section-content tile-grid">
+		{% for media in all_media %}
+			{% set media_url=url_for('page_view', media_id=uuid_to_b64(media.id)) %}
+			<div class="tile">
+				<div class="tile-thumb-wrapper">
+					<span class="tile-thumb">
+						<a href="{{ media_url }}">
+							<img src="{{ url_for('files_thumbs', media_id=media.id) }}" alt="Thumbnail for {{ media.title }}">
+						</a>
+						<div class="bubble-overlay">
 							{% if media.duration != None %}
-								<span class="badge text-bg-dark">{{ format_duration(media.duration) }}</span>
+								<span>{{ format_duration(media.duration) }}</span>
 							{% endif %}
 						</div>
+					</span>
+				</div>
+				<div class="tile-title">
+					<a href="{{ media_url }}">{{ media.title }}</a>
+				</div>
+				<div class="tile-details">
+					<div>
+						<a href="{{ media_url }}">{{ media.title }}</a>
 					</div>
-				</a>
-				<div class="card-body px-2 py-1">
-					<a href="{{ media_url }}"><b>{{ media.title }}</b></a>
+					<div>
+						<a href="{{ media_url }}">{{ media.title }}</a>
+					</div>
 				</div>
 			</div>
-		</div>
-	{% endfor %}
+		{% endfor %}
+	</div>
 </div>
 {% endblock %}
 
 {% block sidebar_content %}
-<div class="card">
-	<div class="list-group list-group-flush">
-		<a href="#" class="list-group-item list-group-item-action">Destination 1</a>
-		<a href="#" class="list-group-item list-group-item-action">Destination 2</a>
-		<a href="#" class="list-group-item list-group-item-action">Destination 3</a>
-	</div>
+<div class="section-content bubble-block link-list shadow">
+	<a href="#" class="">Destination 1</a>
+	<a href="#" class="">Destination 2</a>
+	<a href="#" class="">Destination 3</a>
 </div>
 {% endblock %}
