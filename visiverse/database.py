@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import enum
-import uuid
 from dataclasses import dataclass
 from typing import Optional
 
+from sqlalchemy import event
+# Metadata
 from sqlalchemy import Column
 from sqlalchemy import Table
 from sqlalchemy import ForeignKey
@@ -42,45 +43,37 @@ class Database():
 
     # ********** Generic Actions **********
 
-    async def insert_object(self, new_object):
-        async with self.async_session() as session:
-            async with session.begin():
-                session.add(new_object)
-            session.refresh(new_object)
+    async def insert_object(self, session, new_object):
+        session.add(new_object)
 
-    async def select_object(self, object_class, object_uuid):
-        async with self.async_session() as session:
-            result = await session.execute(
-                select(object_class)
-                .where(object_class.id == object_uuid)
-            )
-            return result.scalar()
+    async def select_object(self, session, object_class, object_uuid):
+        result = await session.execute(
+            select(object_class)
+            .where(object_class.id == object_uuid)
+        )
+        return result.scalar()
 
-    async def select_all_objects(self, object_class):
-        async with self.async_session() as session:
-            result = await session.execute(
-                select(object_class)
-            )
-            return result.scalars()
+    async def select_all_objects(self, session, object_class):
+        result = await session.execute(
+            select(object_class)
+        )
+        return result.scalars()
 
     # ********** Access Helpers **********
 
-    async def get_or_create_tag(self, tag_name):
-        async with self.async_session() as session:
-            async with session.begin():
-                # try obtaining
-                result = await session.execute(
-                    select(Tag)
-                    .where(Tag.name == tag_name)
-                )
-                result = result.scalar()
-                if result is not None:
-                    return result
-                # create and insert
-                new_tag = Tag(name=tag_name)
-                session.add(new_tag)
-                session.refresh(new_tag)
-                return new_tag
+    async def get_or_create_tag(self, session, tag_name):
+        # try obtaining
+        result = await session.execute(
+            select(Tag)
+            .where(Tag.name == tag_name)
+        )
+        result = result.scalar()
+        if result is not None:
+            return result
+        # create and insert
+        new_tag = Tag(name=tag_name)
+        session.add(new_tag)
+        return new_tag
 
 
 class Base(AsyncAttrs, DeclarativeBase):
@@ -122,7 +115,7 @@ class MediaType(enum.Enum):
 class Media(Base):
     __tablename__ = "media"
 
-    id: Mapped[str] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    id: Mapped[str] = mapped_column(Uuid, primary_key=True)
     filename: Mapped[str] = mapped_column(unique=True)
     title: Mapped[str]
     description: Mapped[Optional[str]]
@@ -154,7 +147,7 @@ class Media(Base):
 class Person(Base):
     __tablename__ = "people"
 
-    id: Mapped[str] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    id: Mapped[str] = mapped_column(Uuid, primary_key=True)
     name: Mapped[str]
 
     media: Mapped[set[Media]] = relationship(
@@ -175,7 +168,7 @@ class Person(Base):
 class Organization(Base):
     __tablename__ = "orgs"
 
-    id: Mapped[str] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    id: Mapped[str] = mapped_column(Uuid, primary_key=True)
     name: Mapped[str]
 
     media: Mapped[set[Media]] = relationship(

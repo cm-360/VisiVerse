@@ -1,5 +1,7 @@
 import base64
-from uuid import UUID
+from logging.config import dictConfig
+from traceback import format_exception
+from uuid import UUID, uuid4
 
 # Quart
 from quart import Quart
@@ -29,13 +31,27 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 config_path = "config.cfg"
 config = load_config(config_path)
 
+# logging config
+# dictConfig({
+#     'version': 1,
+#     'loggers': {
+#         'quart.app': {
+#             'level': 'INFO',
+#         },
+#     },
+#     'formatters': {'default': {
+#         'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+#     }},
+# })
+
 
 # ********** Frontend Page Routes **********
 
 @app.route("/")
 async def page_home():
-    all_media = await app.db.select_all_objects(Media)
-    return await render_template("pages/home.html", all_media=all_media)
+    async with app.db.async_session() as session:
+        all_media = await app.db.select_all_objects(session, Media)
+        return await render_template("pages/home.html", all_media=all_media)
 
 @app.route("/view/<string:media_id>")
 async def page_view(media_id: str):
@@ -66,10 +82,11 @@ async def page_exception(e, code=400):
 async def api_media_info(media_id: str):
     try:
         media_uuid = UUID(media_id)
-        result = await app.db.select_object(Media, media_uuid)
-        if result is None:
-            return api_error("Not found", 404)
-        return api_success(result)
+        async with app.db.async_session() as session:
+            result = await app.db.select_object(session, Media, media_uuid)
+            if result is None:
+                return api_error("Not found", 404)
+            return api_success(result)
     except ValueError as e:
         return api_exception(e)
 
@@ -77,10 +94,11 @@ async def api_media_info(media_id: str):
 async def api_person_info(person_id: str):
     try:
         person_uuid = UUID(person_id)
-        result = await app.db.select_object(Person, person_uuid)
-        if result is None:
-            return api_error("Not found", 404)
-        return api_success(result)
+        async with app.db.async_session() as session:
+            result = await app.db.select_object(session, Person, person_uuid)
+            if result is None:
+                return api_error("Not found", 404)
+            return api_success(result)
     except ValueError as e:
         return api_exception(e)
 
@@ -88,10 +106,11 @@ async def api_person_info(person_id: str):
 async def api_org_info(org_id: str):
     try:
         org_uuid = UUID(org_id)
-        result = await app.db.select_object(Organization, org_uuid)
-        if result is None:
-            return api_error("Not found", 404)
-        return api_success(result)
+        async with app.db.async_session() as session:
+            result = await app.db.select_object(session, Organization, org_uuid)
+            if result is None:
+                return api_error("Not found", 404)
+            return api_success(result)
     except ValueError as e:
         return api_exception(e)
 
@@ -102,10 +121,11 @@ async def api_org_info(org_id: str):
 async def files_media(media_id: str):
     try:
         media_uuid = UUID(media_id)
-        result = await app.db.select_object(Media, media_uuid)
-        if result is None:
-            return api_error("Not found", 404)
-        return await send_file(result.filename, conditional=True)
+        async with app.db.async_session() as session:
+            result = await app.db.select_object(session, Media, media_uuid)
+            if result is None:
+                return api_error("Not found", 404)
+            return await send_file(result.filename, conditional=True)
     except ValueError as e:
         return api_exception(e)
 
@@ -113,10 +133,11 @@ async def files_media(media_id: str):
 async def files_thumbs(media_id: str):
     try:
         media_uuid = UUID(media_id)
-        result = await app.db.select_object(Media, media_uuid)
-        if result is None:
-            return api_error("Not found", 404)
-        return await send_file(app.transcoder.get_thumb_filename(result.id))
+        async with app.db.async_session() as session:
+            result = await app.db.select_object(session, Media, media_uuid)
+            if result is None:
+                return api_error("Not found", 404)
+            return await send_file(app.transcoder.get_thumb_filename(result.id))
     except ValueError as e:
         return api_exception(e)
 
@@ -141,19 +162,20 @@ def api_exception(e, code=400):
 
 # ********** Library Operations **********
 
-async def import_media(media_filename, **media_args):
+async def import_media(session, media_filename, **media_args):
     # create media object
     new_media = Media(
+        id=uuid4(),
         filename=media_filename,
         **media_args
     )
-    tag = await app.db.get_or_create_tag("test1")
+    tag = await app.db.get_or_create_tag(session, "test1")
     new_media.tags = set([tag])
     # set duration for videos
     if MediaType.video == new_media.type:
         new_media.duration = await run_sync(get_video_duration)(new_media.filename)
     # insert media into db
-    await app.db.insert_object(new_media)
+    await app.db.insert_object(session, new_media)
     # generate thumbnails for videos
     if MediaType.video == new_media.type:
         await run_sync(app.transcoder.create_thumbnail)(new_media)
@@ -169,12 +191,14 @@ async def app_prepare():
 
     import os
     import_dir = "media"
-    for filename in os.listdir(import_dir):
-        await import_media(f"{import_dir}/{filename}", title=filename, type=MediaType.video)
+    async with app.db.async_session() as session:
+        async with session.begin():
+            for filename in os.listdir(import_dir):
+                await import_media(session, f"{import_dir}/{filename}", title=filename, type=MediaType.video)
 
-    # results = await app.db.select_all_objects(Media)
-    # for result in results:
-    #     print(jsonify(result))
+        results = await app.db.select_all_objects(session, Media)
+        for result in results:
+            print(result)
 
 @app.after_serving
 async def app_cleanup():
@@ -194,7 +218,8 @@ def handle_exception(e: Exception):
     if isinstance(e, HTTPException):
         return e
     app.logger.error(f"Uncaught exception")
-    app.logger.exception(e)
+    for line in format_exception(e):
+        app.logger.error(line.rstrip("\n"))
     return api_exception(e, 500)
 
 def uuid_to_b64(uuid_value):
