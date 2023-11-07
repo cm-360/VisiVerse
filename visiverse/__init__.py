@@ -210,7 +210,3 @@ def format_duration(seconds):
         return f"{minutes}:{seconds:02}"
     else:
         return f"{hours}:{minutes:02}:{seconds:02}"
-
-
-if __name__ == "__main__":
-    app.run()
