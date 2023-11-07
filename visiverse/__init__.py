@@ -56,12 +56,13 @@ async def page_home():
 @app.route("/view/<string:media_id>")
 async def page_view(media_id: str):
     try:
-        media_uuid = b64_to_uuid(media_id)
-        result = await app.db.select_object(Media, media_uuid)
-        if result is None:
-            return await page_error("Not found", 404)
-        # TODO render page
-        return await render_template("pages/view.html", media=result)
+        async with app.db.async_session() as session:
+            media_uuid = b64_to_uuid(media_id)
+            result = await app.db.select_object(session, Media, media_uuid)
+            if result is None:
+                return await page_error("Not found", 404)
+            # TODO render page
+            return await render_template("pages/view.html", media=result)
     except ValueError as e:
         return await page_exception(e)
 
