@@ -122,6 +122,9 @@ h1, h2, h3, h4, h5, h6 {
 	display: grid;
 	gap: 8px;
 }
+.tile-title {
+	font-size: 0.9em;
+}
 .tile-details {
 	font-size: 0.8em;
 	color: var(--color-text-minor);
@@ -137,17 +140,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 .bubble-overlay span {
 	display: inline-block;
-	padding: 2px 4px;
+	padding: 3px;
 	border-radius: 6px;
 	background-color: rgba(0, 0, 0, 0.75);
 }
 
-.field-md {
-
-}
 .field-sm {
+	margin: 2px 0;
+}
+.field-md {
 	margin: 4px 0;
 }
+.field-lg {
+	margin: 6px 0;
+}
+
 
 /* Topnav and footer */
 
