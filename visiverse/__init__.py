@@ -14,19 +14,19 @@ from sqlalchemy import insert
 from sqlalchemy import select
 
 # Custom config class
-from config import load_config
+from visiverse.config import load_config
 
 # Custom database and types
-from database import Database
-from database import MediaType
-from database import Media
-from database import Person
-from database import Organization
-from database import Tag
+from visiverse.database import Database
+from visiverse.database import MediaType
+from visiverse.database import Media
+from visiverse.database import Person
+from visiverse.database import Organization
+from visiverse.database import Tag
 
 # Custom FFmpeg wrapper
-from transcoder import Transcoder
-from transcoder import get_video_duration
+from visiverse.transcoder import Transcoder
+from visiverse.transcoder import get_video_duration
 
 
 app = Quart(__name__)
