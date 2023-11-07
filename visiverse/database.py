@@ -63,6 +63,25 @@ class Database():
             )
             return result.scalars()
 
+    # ********** Access Helpers **********
+
+    async def get_or_create_tag(self, tag_name):
+        async with self.async_session() as session:
+            async with session.begin():
+                # try obtaining
+                result = await session.execute(
+                    select(Tag)
+                    .where(Tag.name == tag_name)
+                )
+                result = result.scalar()
+                if result is not None:
+                    return result
+                # create and insert
+                new_tag = Tag(name=tag_name)
+                session.add(new_tag)
+                session.refresh(new_tag)
+                return new_tag
+
 
 class Base(AsyncAttrs, DeclarativeBase):
     pass
@@ -74,6 +93,22 @@ assoc_media_tag_table = Table(
     Base.metadata,
     Column("media_id", ForeignKey("media.id"), primary_key=True),
     Column("tag_name", ForeignKey("tags.name"), primary_key=True),
+)
+
+# Media <---> Person associations
+assoc_media_person_table = Table(
+    "assoc_media_person",
+    Base.metadata,
+    Column("media_id", ForeignKey("media.id"), primary_key=True),
+    Column("person_id", ForeignKey("people.id"), primary_key=True),
+)
+
+# Media <---> Organization associations
+assoc_media_org_table = Table(
+    "assoc_media_org",
+    Base.metadata,
+    Column("media_id", ForeignKey("media.id"), primary_key=True),
+    Column("org_id", ForeignKey("orgs.id"), primary_key=True),
 )
 
 
@@ -95,9 +130,21 @@ class Media(Base):
     urls: Mapped[Optional[str]]
     type: Mapped[enum.Enum] = mapped_column(Enum(MediaType))
 
-    tags: Mapped[list[Tag]] = relationship(
+    people: Mapped[set[Person]] = relationship(
+        secondary=assoc_media_person_table, back_populates="media"
+    )
+    orgs: Mapped[set[Organization]] = relationship(
+        secondary=assoc_media_org_table, back_populates="media"
+    )
+    tags: Mapped[set[Tag]] = relationship(
         secondary=assoc_media_tag_table, back_populates="media"
     )
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __hash__(self):
+        return 0 if self.id is None else self.id.int
 
     def __repr__(self) -> str:
         return f"{self.title} [{self.filename}]"
@@ -110,16 +157,36 @@ class Person(Base):
     id: Mapped[str] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     name: Mapped[str]
 
+    media: Mapped[set[Media]] = relationship(
+        secondary=assoc_media_person_table, back_populates="people"
+    )
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __hash__(self):
+        return 0 if self.id is None else self.id.int
+
     def __repr__(self) -> str:
         return f"{self.name}"
 
 
 @dataclass
 class Organization(Base):
-    __tablename__ = "organizations"
+    __tablename__ = "orgs"
 
     id: Mapped[str] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     name: Mapped[str]
+
+    media: Mapped[set[Media]] = relationship(
+        secondary=assoc_media_org_table, back_populates="orgs"
+    )
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __hash__(self):
+        return 0 if self.id is None else self.id.int
 
     def __repr__(self) -> str:
         return f"{self.name}"
@@ -131,9 +198,15 @@ class Tag(Base):
 
     name: Mapped[str] = mapped_column(primary_key=True)
 
-    media: Mapped[list[Media]] = relationship(
+    media: Mapped[set[Media]] = relationship(
         secondary=assoc_media_tag_table, back_populates="tags"
     )
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
 
     def __repr__(self) -> str:
         return f"{self.name}"

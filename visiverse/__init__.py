@@ -9,13 +9,8 @@ from quart import send_file
 from quart.utils import run_sync
 from werkzeug.exceptions import HTTPException
 
-# SQL commands
-from sqlalchemy import insert
-from sqlalchemy import select
-
 # Custom config class
 from visiverse.config import load_config
-
 # Custom database and types
 from visiverse.database import Database
 from visiverse.database import MediaType
@@ -23,7 +18,6 @@ from visiverse.database import Media
 from visiverse.database import Person
 from visiverse.database import Organization
 from visiverse.database import Tag
-
 # Custom FFmpeg wrapper
 from visiverse.transcoder import Transcoder
 from visiverse.transcoder import get_video_duration
@@ -90,11 +84,11 @@ async def api_person_info(person_id: str):
     except ValueError as e:
         return api_exception(e)
 
-@app.route("/api/organization/info/<string:organization_id>")
-async def api_organization_info(id: str):
+@app.route("/api/orgs/info/<string:org_id>")
+async def api_org_info(org_id: str):
     try:
-        organization_uuid = UUID(organization_id)
-        result = await app.db.select_object(Organization, organization_uuid)
+        org_uuid = UUID(org_id)
+        result = await app.db.select_object(Organization, org_uuid)
         if result is None:
             return api_error("Not found", 404)
         return api_success(result)
@@ -153,6 +147,8 @@ async def import_media(media_filename, **media_args):
         filename=media_filename,
         **media_args
     )
+    tag = await app.db.get_or_create_tag("test1")
+    new_media.tags = set([tag])
     # set duration for videos
     if MediaType.video == new_media.type:
         new_media.duration = await run_sync(get_video_duration)(new_media.filename)
@@ -175,6 +171,10 @@ async def app_prepare():
     import_dir = "media"
     for filename in os.listdir(import_dir):
         await import_media(f"{import_dir}/{filename}", title=filename, type=MediaType.video)
+
+    # results = await app.db.select_all_objects(Media)
+    # for result in results:
+    #     print(jsonify(result))
 
 @app.after_serving
 async def app_cleanup():
