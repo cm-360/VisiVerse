@@ -29,14 +29,16 @@
 body {
 	margin: 0;
 	min-height: 100vh;
-	position: relative;
+	display: flex;
+	flex-direction: column;
 	color: var(--color-text-foreground);
 	background-color: var(--color-bg);
 	font-family: Arial, Helvetica, sans-serif;
 }
 main {
 	max-width: var(--page-content-size);
-	margin: auto;
+	margin: 0 auto;
+	overflow: auto;
 }
 
 heading {
@@ -293,12 +295,12 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Pager header and footer */
 .page-header {
-	margin-bottom: 5px;
+	padding-bottom: 5px;
 }
 .page-footer {
 	width: 100%;
-	position: absolute;
-	bottom: 0;
+	margin-top: auto;
+	padding-top: 5px;
 }
 .footer-content {
 	display: flex;
