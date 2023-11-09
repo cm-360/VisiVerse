@@ -20,7 +20,9 @@
 <body>
 	{% include "features/header.html" %}
 	<main>
-		{% block content %}{% endblock %}
+		<div class="content-wrapper">
+			{% block content %}{% endblock %}
+		</div>
 	</main>
 	{% include "features/footer.html" %}
 </body>
