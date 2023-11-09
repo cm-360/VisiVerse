@@ -138,6 +138,10 @@ h1, h2, h3, h4, h5, h6 {
 	font-size: 1em;
 	color: var(--color-text-foreground);
 }
+.button-sm {
+	padding: 6px;
+	font-size: 0.8em;
+}
 .button-group {
 	display: inline-flex;
 	border-radius: 8px;
@@ -195,10 +199,10 @@ h1, h2, h3, h4, h5, h6 {
 	margin: 2px 0;
 }
 .field-md {
-	margin: 4px 0;
+	margin: 5px 0;
 }
 .field-lg {
-	margin: 6px 0;
+	margin: 8px 0;
 }
 
 /* Profile info */
