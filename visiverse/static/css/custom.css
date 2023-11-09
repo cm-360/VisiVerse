@@ -118,6 +118,11 @@ h1, h2, h3, h4, h5, h6 {
 	justify-content: space-between;
 }
 
+.vl {
+	border-left: 1px solid var(--color-secondary-2);
+	margin: 0 5px;
+}
+
 /* Buttons */
 
 .button {
@@ -237,16 +242,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* Topnav and footer */
+/* Navigation bars */
 
 .nav-container {
 	background-color: var(--color-secondary);
-}
-.nav-top {
-	margin-bottom: 5px;
-}
-.nav-bottom {
-	margin-top: 5px;
 }
 .nav-inner {
 	max-width: var(--page-content-size);
@@ -288,10 +287,21 @@ h1, h2, h3, h4, h5, h6 {
 	border-bottom: solid 3px var(--color-accent);
 }
 
-footer {
+/* Pager header and footer */
+.page-header {
+	margin-bottom: 5px;
+}
+.page-footer {
 	width: 100%;
 	position: absolute;
 	bottom: 0;
+}
+.footer-content {
+	display: flex;
+	margin: 10px;
+}
+.footer-link {
+	margin: 3px;
 }
 
 @media only screen and (min-width: 700px) {
