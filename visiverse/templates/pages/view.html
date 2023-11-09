@@ -1,6 +1,6 @@
 {% extends "layouts/sidebar_right.html" %}
 
-{% block title %}View{% endblock %}
+{% block title %}{{ media.title }}{% endblock %}
 
 {% block page_content %}
 <div class="section-content">
@@ -14,6 +14,27 @@
 </div>
 <div class="section-header">
 	<h1>{{ media.title }}</h1>
+	<div class="stage-info">
+		<div class="media-publisher field-lg">
+			<div class="d-flex flex-align-center">
+				<img class="profile-icon" src="{{ url_for('static', filename='default-avatar.svg') }}">
+				<div class="profile-info">
+					<h4 class="profile-title">
+						<a class="link" href="#">Person McExampleson</a>
+					</h4>
+					<div class="profile-details">100 subscribbles</div>
+				</div>
+			</div>
+		</div>
+		<div class="media-actions field-lg">
+			<span class="button-group shadow">
+				<button class="button button-dark"><i class="fa-regular fa-fw fa-thumbs-up"></i></button>
+				<button class="button button-dark"><i class="fa-regular fa-fw fa-thumbs-down"></i></button>
+			</span>
+			<button class="button button-dark shadow"><i class="fa-regular fa-star"></i> Favorite</button>
+			<button class="button button-dark shadow"><i class="fa-solid fa-download"></i> Download</button>
+		</div>
+	</div>
 </div>
 {% endblock %}
 
