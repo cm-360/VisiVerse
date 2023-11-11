@@ -8,6 +8,7 @@ quart = "*"
 sqlalchemy = {extras = ["asyncio"], version = "*"}
 aiosqlite = "*"
 ffmpeg-python = "*"
+argon2-cffi = "*"
 
 [dev-packages]
 
