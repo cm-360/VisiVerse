@@ -1,4 +1,5 @@
 import base64
+import os
 from logging.config import dictConfig
 from traceback import format_exception
 from uuid import UUID, uuid4
@@ -30,6 +31,18 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 config_path = "config.cfg"
 config = load_config(config_path)
+
+secret_key_path = "secret.key"
+if os.path.isfile(secret_key_path):
+    # Read existing secret key
+    with open(secret_key_path, "r") as key_file:
+        key = key_file.read().strip()
+else:
+    # Generate new secret key
+    with open(secret_key_path, "w") as key_file:
+        key = uuid4().hex
+        key_file.write(key)
+app.config.secret_key = key
 
 # logging config
 # dictConfig({
@@ -103,8 +116,8 @@ async def api_person_info(person_id: str):
     except ValueError as e:
         return api_exception(e)
 
-@app.route("/api/orgs/info/<string:org_id>")
-async def api_org_info(org_id: str):
+@app.route("/api/organization/info/<string:org_id>")
+async def api_organization_info(org_id: str):
     try:
         org_uuid = UUID(org_id)
         async with app.db.async_session() as session:
@@ -190,16 +203,16 @@ async def app_prepare():
     app.transcoder = Transcoder(config)
     await app.db.begin()
 
-    import os
-    import_dir = "media"
-    async with app.db.async_session() as session:
-        async with session.begin():
-            for filename in os.listdir(import_dir):
-                await import_media(session, f"{import_dir}/{filename}", title=filename, type=MediaType.video)
+    # import os
+    # import_dir = "media"
+    # async with app.db.async_session() as session:
+    #     async with session.begin():
+    #         for filename in os.listdir(import_dir):
+    #             await import_media(session, f"{import_dir}/{filename}", title=filename, type=MediaType.video)
 
-        results = await app.db.select_all_objects(session, Media)
-        for result in results:
-            print(result)
+    #     results = await app.db.select_all_objects(session, Media)
+    #     for result in results:
+    #         print(result)
 
 @app.after_serving
 async def app_cleanup():

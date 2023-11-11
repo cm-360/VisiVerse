@@ -1,4 +1,5 @@
 config.cfg
 library.db
+secret.key
 media/
 storage/

@@ -80,12 +80,12 @@ class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 
-# Media <---> Tag associations
-assoc_media_tag_table = Table(
-    "assoc_media_tag",
+# Media <---> Collection associations
+assoc_media_collection_table = Table(
+    "assoc_media_collection",
     Base.metadata,
     Column("media_id", ForeignKey("media.id"), primary_key=True),
-    Column("tag_name", ForeignKey("tags.name"), primary_key=True),
+    Column("collection_id", ForeignKey("collections.id"), primary_key=True),
 )
 
 # Media <---> Person associations
@@ -97,11 +97,19 @@ assoc_media_person_table = Table(
 )
 
 # Media <---> Organization associations
-assoc_media_org_table = Table(
-    "assoc_media_org",
+assoc_media_organization_table = Table(
+    "assoc_media_organization",
     Base.metadata,
     Column("media_id", ForeignKey("media.id"), primary_key=True),
-    Column("org_id", ForeignKey("orgs.id"), primary_key=True),
+    Column("organization_id", ForeignKey("organizations.id"), primary_key=True),
+)
+
+# Media <---> Tag associations
+assoc_media_tag_table = Table(
+    "assoc_media_tag",
+    Base.metadata,
+    Column("media_id", ForeignKey("media.id"), primary_key=True),
+    Column("tag_name", ForeignKey("tags.name"), primary_key=True),
 )
 
 
@@ -123,11 +131,14 @@ class Media(Base):
     urls: Mapped[Optional[str]]
     type: Mapped[enum.Enum] = mapped_column(Enum(MediaType))
 
+    collections: Mapped[set[Collection]] = relationship(
+        secondary=assoc_media_collection_table, back_populates="media"
+    )
     people: Mapped[set[Person]] = relationship(
         secondary=assoc_media_person_table, back_populates="media"
     )
-    orgs: Mapped[set[Organization]] = relationship(
-        secondary=assoc_media_org_table, back_populates="media"
+    organizations: Mapped[set[Organization]] = relationship(
+        secondary=assoc_media_organization_table, back_populates="media"
     )
     tags: Mapped[set[Tag]] = relationship(
         secondary=assoc_media_tag_table, back_populates="media"
@@ -141,6 +152,45 @@ class Media(Base):
 
     def __repr__(self) -> str:
         return f"{self.title} [{self.filename}]"
+
+
+@dataclass
+class User(Base):
+    __tablename__ = "users"
+
+    username: Mapped[str] = mapped_column(primary_key=True)
+    password_hash: Mapped[str]
+    display_name: Mapped[str]
+    description: Mapped[Optional[str]]
+
+
+class CollectionType(enum.Enum):
+    playlist = 1
+    series = 2
+    album = 3
+
+
+@dataclass
+class Collection(Base):
+    __tablename__ = "collections"
+
+    id: Mapped[str] = mapped_column(Uuid, primary_key=True)
+    name: Mapped[str]
+    description: Mapped[Optional[str]]
+    type: Mapped[enum.Enum] = mapped_column(Enum(CollectionType))
+
+    media: Mapped[set[Media]] = relationship(
+        secondary=assoc_media_collection_table, back_populates="collections"
+    )
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __hash__(self):
+        return 0 if self.id is None else self.id.int
+
+    def __repr__(self) -> str:
+        return f"{self.name}"
 
 
 @dataclass
@@ -166,13 +216,13 @@ class Person(Base):
 
 @dataclass
 class Organization(Base):
-    __tablename__ = "orgs"
+    __tablename__ = "organizations"
 
     id: Mapped[str] = mapped_column(Uuid, primary_key=True)
     name: Mapped[str]
 
     media: Mapped[set[Media]] = relationship(
-        secondary=assoc_media_org_table, back_populates="orgs"
+        secondary=assoc_media_organization_table, back_populates="organizations"
     )
 
     def __eq__(self, other):
