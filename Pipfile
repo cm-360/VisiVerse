@@ -9,6 +9,7 @@ sqlalchemy = {extras = ["asyncio"], version = "*"}
 aiosqlite = "*"
 ffmpeg-python = "*"
 argon2-cffi = "*"
+quart-auth = "*"
 
 [dev-packages]
 

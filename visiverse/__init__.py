@@ -7,11 +7,26 @@ from uuid import UUID, uuid4
 # Quart
 from quart import Quart
 from quart import jsonify
+from quart import redirect
 from quart import render_template
+from quart import request
 from quart import send_file
+from quart.helpers import safe_join
 from quart.utils import run_sync
+# Quart-Auth extenstion
+from quart_auth import QuartAuth
+from quart_auth import AuthUser
+from quart_auth import current_user
+from quart_auth import login_user
+from quart_auth import login_required
+from quart_auth import logout_user
+from quart_auth import Unauthorized
+# Werkzeug library
 from werkzeug.exceptions import HTTPException
 
+# Custom authenticator class
+from visiverse.authenticator import Authenticator
+from visiverse.authenticator import AuthenticationError
 # Custom config class
 from visiverse.config import load_config
 # Custom database and types
@@ -29,6 +44,8 @@ from visiverse.transcoder import get_video_duration
 app = Quart(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+QuartAuth(app)
+
 config_path = "config.cfg"
 config = load_config(config_path)
 
@@ -42,7 +59,7 @@ else:
     with open(secret_key_path, "w") as key_file:
         key = uuid4().hex
         key_file.write(key)
-app.config.secret_key = key
+app.secret_key = key
 
 # logging config
 # dictConfig({
@@ -78,6 +95,10 @@ async def page_view(media_id: str):
             return await render_template("pages/view.html", media=result)
     except ValueError as e:
         return await page_exception(e)
+
+@app.route("/login")
+async def page_login():
+    return await render_template("pages/login.html")
 
 
 # ********** Frontend Error Templates **********
@@ -131,6 +152,10 @@ async def api_organization_info(org_id: str):
 
 # ********** Backend Files Routes **********
 
+@app.route("/assets/<path:filename>")
+async def template_assets(filename: str):
+    return await render_template(safe_join("assets", filename))
+
 @app.route("/files/media/<string:media_id>")
 async def files_media(media_id: str):
     try:
@@ -154,6 +179,29 @@ async def files_thumbs(media_id: str):
             return await send_file(app.transcoder.get_thumb_filename(result.id))
     except ValueError as e:
         return api_exception(e)
+
+
+# ********** Authentication Routes **********
+
+@app.route("/auth/login", methods=["POST"])
+async def auth_login():
+    try:
+        login_data = await request.get_json()
+        user = await app.auth.authenticate(
+            login_data["username"],
+            login_data["password"],
+        )
+    except KeyError:
+        return api_error("Missing credentials")
+    except AuthenticationError as e:
+        return api_error(e.message)
+    login_user(AuthUser(user.username))
+    return api_success()
+
+@app.route("/auth/logout")
+async def auth_logout():
+    logout_user()
+    return api_success()
 
 
 # ********** Backend Response Templates **********
@@ -202,6 +250,9 @@ async def app_prepare():
     app.db = Database(config)
     app.transcoder = Transcoder(config)
     await app.db.begin()
+    app.auth = Authenticator(app.db)
+    # admin: PASSWORD
+    # await app.auth.register_user("admin", "0be64ae89ddd24e225434de95d501711339baeee18f009ba9b4369af27d30d60")
 
     # import os
     # import_dir = "media"
@@ -226,8 +277,12 @@ def utility_processor():
         format_duration=format_duration,
     )
 
+@app.errorhandler(Unauthorized)
+async def redirect_to_login(*_: Exception):
+    return redirect(url_for("page_login"))
+
 @app.errorhandler(Exception)
-def handle_exception(e: Exception):
+async def handle_exception(e: Exception):
     # pass through HTTP errors
     if isinstance(e, HTTPException):
         return e

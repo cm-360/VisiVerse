@@ -76,7 +76,16 @@ h1, h2, h3, h4, h5, h6 {
 	max-width: var(--page-content-size);
 	margin: 0 auto;
 	overflow: auto;
+}
 
+.field-sm {
+	margin: 2px 0;
+}
+.field-md {
+	margin: 5px 0;
+}
+.field-lg {
+	margin: 8px 0;
 }
 
 .link {
@@ -204,14 +213,25 @@ h1, h2, h3, h4, h5, h6 {
 	background-color: rgba(0, 0, 0, 0.75);
 }
 
-.field-sm {
-	margin: 2px 0;
+/* Forms */
+.form {
+	max-width: 300px;
+	margin: 0 auto;
 }
-.field-md {
+.form-section {
+	margin: 10px;
+}
+.form-group {
 	margin: 5px 0;
 }
-.field-lg {
-	margin: 8px 0;
+.form-title {
+	/* text-align: center; */
+}
+.form-group label {
+	display: block;
+}
+.form-group input {
+	display: block;
 }
 
 /* Profile info */

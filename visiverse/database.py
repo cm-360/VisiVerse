@@ -14,6 +14,7 @@ from sqlalchemy import Uuid
 # SQL commands
 from sqlalchemy import insert
 from sqlalchemy import select
+from sqlalchemy import update
 # SQLAlchemy AsyncIO requirements
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -60,6 +61,29 @@ class Database():
         return result.scalars()
 
     # ********** Access Helpers **********
+
+    async def get_user(self, session, username):
+        result = await session.execute(
+            select(User)
+            .where(User.username == username)
+        )
+        result = result.scalar()
+        if result is not None:
+            return result
+
+    async def update_user(self, session, username, **kwargs):
+        result = await session.execute(
+            select(User)
+            .where(User.username == username)
+        )
+        result = result.scalar()
+        if result is None:
+            return False
+        await session.execute(
+            update(User)
+            .where(User.username == username)
+            .values(**kwargs)
+        )
 
     async def get_or_create_tag(self, session, tag_name):
         # try obtaining
@@ -160,7 +184,7 @@ class User(Base):
 
     username: Mapped[str] = mapped_column(primary_key=True)
     password_hash: Mapped[str]
-    display_name: Mapped[str]
+    display_name: Mapped[Optional[str]]
     description: Mapped[Optional[str]]
 
 
