@@ -28,7 +28,7 @@ class Authenticator():
                 user = await self.db.get_user(session, username)
                 self.hasher.verify(user.password_hash, password)
             except:
-                raise AuthenticationError("Invalid credentials")
+                raise AuthError("Invalid credentials")
             # Update password hash if needed
             if self.hasher.check_needs_rehash(user.password_hash):
                 async with session.begin():
@@ -37,7 +37,7 @@ class Authenticator():
         return user
 
 
-class AuthenticationError(Exception):
+class AuthError(Exception):
 
     def __init__(self, message):
         self.message = message

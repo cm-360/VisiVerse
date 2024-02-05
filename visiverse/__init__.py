@@ -15,7 +15,7 @@ from quart.helpers import safe_join
 from quart.utils import run_sync
 # Quart-Auth extenstion
 from quart_auth import QuartAuth
-from quart_auth import AuthUser
+from quart_auth import AuthUser as QuartAuthUser
 from quart_auth import current_user
 from quart_auth import login_user
 from quart_auth import login_required
@@ -26,7 +26,7 @@ from werkzeug.exceptions import HTTPException
 
 # Custom authenticator class
 from visiverse.authenticator import Authenticator
-from visiverse.authenticator import AuthenticationError
+from visiverse.authenticator import AuthError
 # Custom config class
 from visiverse.config import load_config
 # Custom database and types
@@ -44,7 +44,9 @@ from visiverse.transcoder import get_video_duration
 app = Quart(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-QuartAuth(app)
+# https://github.com/m1k1o/go-transcode
+
+auth_manager = QuartAuth()
 
 config_path = "config.cfg"
 config = load_config(config_path)
@@ -181,7 +183,27 @@ async def files_thumbs(media_id: str):
         return api_exception(e)
 
 
-# ********** Authentication Routes **********
+# ********** Authentication & Routes **********
+
+class AuthUser(QuartAuthUser):
+
+    def __init__(self, auth_id):
+        super().__init__(auth_id)
+        self._resolved = False
+        self._db_user = None
+
+    async def _resolve(self):
+        if not self._resolved:
+            async with app.db.async_session() as session:
+                self._db_user = await app.db.get_user(session, self.auth_id)
+
+    @property
+    async def db_user(self):
+        await self._resolve()
+        return self._db_user
+
+auth_manager.user_class = AuthUser
+
 
 @app.route("/auth/login", methods=["POST"])
 async def auth_login():
@@ -193,7 +215,7 @@ async def auth_login():
         )
     except KeyError:
         return api_error("Missing credentials")
-    except AuthenticationError as e:
+    except AuthError as e:
         return api_error(e.message)
     login_user(AuthUser(user.username))
     return api_success()
@@ -304,3 +326,6 @@ def format_duration(seconds):
         return f"{minutes}:{seconds:02}"
     else:
         return f"{hours}:{minutes:02}:{seconds:02}"
+
+
+auth_manager.init_app(app)
