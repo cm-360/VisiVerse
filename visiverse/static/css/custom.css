@@ -52,6 +52,10 @@ h1, h2, h3, h4, h5, h6 {
 	margin: 0;
 	display: block;
 }
+input {
+	border: none;
+	padding: 5px;
+}
 
 /* Generic custom components */
 
@@ -168,11 +172,23 @@ h1, h2, h3, h4, h5, h6 {
 .button-group .button {
 	border-radius: 0;
 }
-.button-dark {
+.button-accent {
+	background-color: var(--color-accent);
+}
+.button-accent:hover {
+	background-color: var(--color-accent-2);
+}
+.button-secondary {
 	background-color: var(--color-secondary);
 }
-.button-dark:hover {
+.button-secondary:hover {
 	background-color: var(--color-secondary-2);
+}
+.button-twotone {
+	background-color: var(--color-secondary-2);
+}
+.button-twotone:hover {
+	background-color: var(--color-accent);
 }
 .button-green {
 	background-color: var(--color-green);
@@ -307,7 +323,7 @@ h1, h2, h3, h4, h5, h6 {
 .nav-section {
 	display: flex;
 	align-items: center;
-	margin-right: 10px;
+	margin-right: 15px;
 }
 .nav-link {
 	margin: 0 5px;
